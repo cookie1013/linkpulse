@@ -6,6 +6,8 @@ import com.cookie.linkpulse.entity.ShortLink;
 import com.cookie.linkpulse.repository.ShortLinkRepository;
 import com.cookie.linkpulse.service.ShortLinkService;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -38,6 +40,15 @@ public class ShortLinkServiceImpl implements ShortLinkService {
                 saved.getOriginalUrl(),
                 "http://localhost:8080/" + saved.getShortCode()
         );
+    }
+
+    @Override
+    public String getOriginalUrlByShortCode(String shortCode) {
+        ShortLink shortLink = shortLinkRepository
+                .findByShortCodeAndStatus(shortCode, 1)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "short link not found"));
+
+        return shortLink.getOriginalUrl();
     }
 
     private String generateUniqueShortCode() {

@@ -6,4 +6,6 @@ import com.cookie.linkpulse.dto.ShortLinkResponse;
 public interface ShortLinkService {
 
     ShortLinkResponse createShortLink(CreateShortLinkRequest request);
+
+    String getOriginalUrlByShortCode(String shortCode);
 }
