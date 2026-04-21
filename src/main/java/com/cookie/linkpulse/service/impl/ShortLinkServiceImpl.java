@@ -1,5 +1,5 @@
 package com.cookie.linkpulse.service.impl;
-
+import org.springframework.transaction.annotation.Transactional;
 import com.cookie.linkpulse.dto.CreateShortLinkRequest;
 import com.cookie.linkpulse.dto.ShortLinkResponse;
 import com.cookie.linkpulse.entity.ShortLink;
@@ -29,6 +29,8 @@ public class ShortLinkServiceImpl implements ShortLinkService {
         shortLink.setShortCode(shortCode);
         shortLink.setOriginalUrl(request.getOriginalUrl());
         shortLink.setStatus(1);
+        shortLink.setPv(0L);
+        shortLink.setLastAccessTime(null);
         shortLink.setCreatedAt(LocalDateTime.now());
         shortLink.setUpdatedAt(LocalDateTime.now());
 
@@ -42,11 +44,18 @@ public class ShortLinkServiceImpl implements ShortLinkService {
         );
     }
 
+    @Transactional
     @Override
     public String getOriginalUrlByShortCode(String shortCode) {
         ShortLink shortLink = shortLinkRepository
                 .findByShortCodeAndStatus(shortCode, 1)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "short link not found"));
+
+        shortLink.setPv(shortLink.getPv() + 1);
+        shortLink.setLastAccessTime(LocalDateTime.now());
+        shortLink.setUpdatedAt(LocalDateTime.now());
+
+        shortLinkRepository.save(shortLink);
 
         return shortLink.getOriginalUrl();
     }

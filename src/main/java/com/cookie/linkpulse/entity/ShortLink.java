@@ -25,7 +25,11 @@ public class ShortLink {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+    @Column(name = "pv", nullable = false)
+    private Long pv;
 
+    @Column(name = "last_access_time")
+    private LocalDateTime lastAccessTime;
     public ShortLink() {
     }
 
@@ -71,5 +75,20 @@ public class ShortLink {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+    public Long getPv() {
+        return pv;
+    }
+
+    public void setPv(Long pv) {
+        this.pv = pv;
+    }
+
+    public LocalDateTime getLastAccessTime() {
+        return lastAccessTime;
+    }
+
+    public void setLastAccessTime(LocalDateTime lastAccessTime) {
+        this.lastAccessTime = lastAccessTime;
     }
 }
