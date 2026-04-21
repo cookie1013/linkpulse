@@ -8,6 +8,7 @@ import com.cookie.linkpulse.service.ShortLinkService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -16,9 +17,12 @@ import java.util.UUID;
 public class ShortLinkServiceImpl implements ShortLinkService {
 
     private final ShortLinkRepository shortLinkRepository;
+    private final StringRedisTemplate stringRedisTemplate;
 
-    public ShortLinkServiceImpl(ShortLinkRepository shortLinkRepository) {
+    public ShortLinkServiceImpl(ShortLinkRepository shortLinkRepository,
+                                StringRedisTemplate stringRedisTemplate) {
         this.shortLinkRepository = shortLinkRepository;
+        this.stringRedisTemplate = stringRedisTemplate;
     }
 
     @Override
@@ -47,14 +51,38 @@ public class ShortLinkServiceImpl implements ShortLinkService {
     @Transactional
     @Override
     public String getOriginalUrlByShortCode(String shortCode) {
+        String redisKey = "short_link:" + shortCode;
+
+        // 1. 先查 Redis
+        String cachedOriginalUrl = stringRedisTemplate.opsForValue().get(redisKey);
+        if (cachedOriginalUrl != null && !cachedOriginalUrl.isEmpty()) {
+            ShortLink shortLink = shortLinkRepository
+                    .findByShortCodeAndStatus(shortCode, 1)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "short link not found"));
+
+            shortLink.setPv(shortLink.getPv() + 1);
+            shortLink.setLastAccessTime(LocalDateTime.now());
+            shortLink.setUpdatedAt(LocalDateTime.now());
+            shortLinkRepository.save(shortLink);
+
+            System.out.println("Redis hit for shortCode: " + shortCode);
+
+            return cachedOriginalUrl;
+        }
+
+        System.out.println("Redis miss for shortCode: " + shortCode);
+        // 2. Redis 未命中，查 MySQL
         ShortLink shortLink = shortLinkRepository
                 .findByShortCodeAndStatus(shortCode, 1)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "short link not found"));
 
+        // 3. 写回 Redis
+        stringRedisTemplate.opsForValue().set(redisKey, shortLink.getOriginalUrl());
+
+        // 4. 更新统计信息
         shortLink.setPv(shortLink.getPv() + 1);
         shortLink.setLastAccessTime(LocalDateTime.now());
         shortLink.setUpdatedAt(LocalDateTime.now());
-
         shortLinkRepository.save(shortLink);
 
         return shortLink.getOriginalUrl();
