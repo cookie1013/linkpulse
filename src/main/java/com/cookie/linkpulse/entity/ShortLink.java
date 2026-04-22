@@ -33,6 +33,9 @@ public class ShortLink {
     public ShortLink() {
     }
 
+    @Column(name = "expire_time")
+    private LocalDateTime expireTime;
+
     public Long getId() {
         return id;
     }
@@ -91,4 +94,13 @@ public class ShortLink {
     public void setLastAccessTime(LocalDateTime lastAccessTime) {
         this.lastAccessTime = lastAccessTime;
     }
+
+    public LocalDateTime getExpireTime() {
+        return expireTime;
+    }
+
+    public void setExpireTime(LocalDateTime expireTime) {
+        this.expireTime = expireTime;
+    }
+
 }

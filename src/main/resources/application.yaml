@@ -12,9 +12,15 @@ spring:
 
   jpa:
     hibernate:
-    ddl-auto: update
+      ddl-auto: update
     show-sql: true
+    open-in-view: false
+
   data:
     redis:
       host: localhost
       port: 6379
+
+jwt:
+  secret: linkpulse-super-secret-key-must-be-at-least-32-bytes
+  expiration: 86400000
