@@ -1,6 +1,7 @@
 package com.cookie.linkpulse.controller;
 
 import com.cookie.linkpulse.service.ShortLinkService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,8 +19,8 @@ public class RedirectController {
     }
 
     @GetMapping("/{shortCode}")
-    public ResponseEntity<Void> redirect(@PathVariable String shortCode) {
-        String originalUrl = shortLinkService.getOriginalUrlByShortCode(shortCode);
+    public ResponseEntity<Void> redirect(@PathVariable String shortCode, HttpServletRequest request) {
+        String originalUrl = shortLinkService.getOriginalUrlByShortCode(shortCode, request);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(URI.create(originalUrl));

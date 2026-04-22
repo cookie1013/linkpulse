@@ -21,16 +21,28 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 import java.util.List;
+import com.cookie.linkpulse.entity.ShortLinkAccessLog;
+import com.cookie.linkpulse.repository.ShortLinkAccessLogRepository;
+import com.cookie.linkpulse.dto.AccessLogItemResponse;
+import com.cookie.linkpulse.dto.ShortLinkStatsDetailResponse;
+import com.cookie.linkpulse.dto.TopShortLinkItemResponse;
+
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.data.domain.Sort;
+
+import java.util.ArrayList;
 @Service
 public class ShortLinkServiceImpl implements ShortLinkService {
 
     private final ShortLinkRepository shortLinkRepository;
     private final StringRedisTemplate stringRedisTemplate;
-
+    private final ShortLinkAccessLogRepository shortLinkAccessLogRepository;
     public ShortLinkServiceImpl(ShortLinkRepository shortLinkRepository,
-                                StringRedisTemplate stringRedisTemplate) {
+                                StringRedisTemplate stringRedisTemplate,
+                                ShortLinkAccessLogRepository shortLinkAccessLogRepository) {
         this.shortLinkRepository = shortLinkRepository;
         this.stringRedisTemplate = stringRedisTemplate;
+        this.shortLinkAccessLogRepository = shortLinkAccessLogRepository;
     }
 
     @Override
@@ -56,10 +68,16 @@ public class ShortLinkServiceImpl implements ShortLinkService {
                 "http://localhost:8080/" + saved.getShortCode()
         );
     }
-
+    private String getClientIp(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isEmpty() && !"unknown".equalsIgnoreCase(xForwardedFor)) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
+    }
     @Transactional
     @Override
-    public String getOriginalUrlByShortCode(String shortCode) {
+    public String getOriginalUrlByShortCode(String shortCode, HttpServletRequest request) {
         ShortLink shortLink = shortLinkRepository
                 .findByShortCode(shortCode)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "short link not found"));
@@ -75,29 +93,79 @@ public class ShortLinkServiceImpl implements ShortLinkService {
         String redisKey = "short_link:" + shortCode;
         String cachedOriginalUrl = stringRedisTemplate.opsForValue().get(redisKey);
 
+        String originalUrl;
         if (cachedOriginalUrl != null && !cachedOriginalUrl.isEmpty()) {
             System.out.println("Redis hit for shortCode: " + shortCode);
-
-            shortLink.setPv(shortLink.getPv() + 1);
-            shortLink.setLastAccessTime(LocalDateTime.now());
-            shortLink.setUpdatedAt(LocalDateTime.now());
-            shortLinkRepository.save(shortLink);
-
-            return cachedOriginalUrl;
+            originalUrl = cachedOriginalUrl;
+        } else {
+            System.out.println("Redis miss for shortCode: " + shortCode);
+            originalUrl = shortLink.getOriginalUrl();
+            stringRedisTemplate.opsForValue().set(redisKey, originalUrl);
         }
-
-        System.out.println("Redis miss for shortCode: " + shortCode);
-
-        stringRedisTemplate.opsForValue().set(redisKey, shortLink.getOriginalUrl());
 
         shortLink.setPv(shortLink.getPv() + 1);
         shortLink.setLastAccessTime(LocalDateTime.now());
         shortLink.setUpdatedAt(LocalDateTime.now());
         shortLinkRepository.save(shortLink);
 
-        return shortLink.getOriginalUrl();
+        ShortLinkAccessLog accessLog = new ShortLinkAccessLog();
+        accessLog.setShortLinkId(shortLink.getId());
+        accessLog.setShortCode(shortLink.getShortCode());
+        accessLog.setOriginalUrl(shortLink.getOriginalUrl());
+        accessLog.setClientIp(getClientIp(request));
+        accessLog.setUserAgent(request.getHeader("User-Agent"));
+        accessLog.setReferer(request.getHeader("Referer"));
+        accessLog.setAccessTime(LocalDateTime.now());
+        shortLinkAccessLogRepository.save(accessLog);
+
+        return originalUrl;
     }
 
+    @Override
+    public ShortLinkStatsDetailResponse getStatsDetail(Long id) {
+        ShortLink shortLink = shortLinkRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "short link not found"));
+
+        List<AccessLogItemResponse> recentLogs = shortLinkAccessLogRepository
+                .findTop10ByShortLinkIdOrderByAccessTimeDesc(id)
+                .stream()
+                .map(log -> new AccessLogItemResponse(
+                        log.getClientIp(),
+                        log.getUserAgent(),
+                        log.getReferer(),
+                        log.getAccessTime()
+                ))
+                .toList();
+
+        return new ShortLinkStatsDetailResponse(
+                shortLink.getId(),
+                shortLink.getShortCode(),
+                shortLink.getOriginalUrl(),
+                "http://localhost:8080/" + shortLink.getShortCode(),
+                shortLink.getStatus(),
+                shortLink.getPv(),
+                shortLink.getLastAccessTime(),
+                shortLink.getExpireTime(),
+                recentLogs
+        );
+    }
+    @Override
+    public List<TopShortLinkItemResponse> listTopLinks(Integer limit) {
+        int size = (limit == null || limit < 1) ? 5 : limit;
+
+        PageRequest pageRequest = PageRequest.of(0, size, Sort.by(Sort.Direction.DESC, "pv"));
+        Page<ShortLink> page = shortLinkRepository.findByStatus(1, pageRequest);
+
+        return page.getContent().stream()
+                .map(item -> new TopShortLinkItemResponse(
+                        item.getId(),
+                        item.getShortCode(),
+                        item.getOriginalUrl(),
+                        "http://localhost:8080/" + item.getShortCode(),
+                        item.getPv()
+                ))
+                .toList();
+    }
     private String generateUniqueShortCode() {
         String shortCode;
         do {
