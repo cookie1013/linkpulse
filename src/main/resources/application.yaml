@@ -18,9 +18,13 @@ spring:
 
   data:
     redis:
-      host: localhost
+      host: 172.19.222.33
       port: 6379
 
 jwt:
   secret: linkpulse-super-secret-key-must-be-at-least-32-bytes
   expiration: 86400000
+rocketmq:
+  name-server: 172.19.222.33:9876
+  producer:
+    group: linkpulse-access-event-producer

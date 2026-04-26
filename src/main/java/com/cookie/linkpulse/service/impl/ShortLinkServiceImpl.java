@@ -1,7 +1,7 @@
 package com.cookie.linkpulse.service.impl;
+import com.cookie.linkpulse.dto.*;
+import com.cookie.linkpulse.service.ShortLinkAccessEventProducer;
 import org.springframework.transaction.annotation.Transactional;
-import com.cookie.linkpulse.dto.CreateShortLinkRequest;
-import com.cookie.linkpulse.dto.ShortLinkResponse;
 import com.cookie.linkpulse.entity.ShortLink;
 import com.cookie.linkpulse.repository.ShortLinkRepository;
 import com.cookie.linkpulse.service.ShortLinkService;
@@ -12,9 +12,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
-import com.cookie.linkpulse.dto.PageResponse;
-import com.cookie.linkpulse.dto.ShortLinkPageItemResponse;
-import com.cookie.linkpulse.dto.ShortLinkPageQuery;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,9 +21,6 @@ import org.springframework.http.HttpStatus;
 import java.util.List;
 import com.cookie.linkpulse.entity.ShortLinkAccessLog;
 import com.cookie.linkpulse.repository.ShortLinkAccessLogRepository;
-import com.cookie.linkpulse.dto.AccessLogItemResponse;
-import com.cookie.linkpulse.dto.ShortLinkStatsDetailResponse;
-import com.cookie.linkpulse.dto.TopShortLinkItemResponse;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Sort;
@@ -37,12 +32,16 @@ public class ShortLinkServiceImpl implements ShortLinkService {
     private final ShortLinkRepository shortLinkRepository;
     private final StringRedisTemplate stringRedisTemplate;
     private final ShortLinkAccessLogRepository shortLinkAccessLogRepository;
+    private final ShortLinkAccessEventProducer shortLinkAccessEventProducer;
+
     public ShortLinkServiceImpl(ShortLinkRepository shortLinkRepository,
                                 StringRedisTemplate stringRedisTemplate,
-                                ShortLinkAccessLogRepository shortLinkAccessLogRepository) {
+                                ShortLinkAccessLogRepository shortLinkAccessLogRepository,
+                                ShortLinkAccessEventProducer shortLinkAccessEventProducer) {
         this.shortLinkRepository = shortLinkRepository;
         this.stringRedisTemplate = stringRedisTemplate;
         this.shortLinkAccessLogRepository = shortLinkAccessLogRepository;
+        this.shortLinkAccessEventProducer = shortLinkAccessEventProducer;
     }
 
     @Override
@@ -75,11 +74,10 @@ public class ShortLinkServiceImpl implements ShortLinkService {
         }
         return request.getRemoteAddr();
     }
-    @Transactional
+    @Transactional(readOnly = true)
     @Override
     public String getOriginalUrlByShortCode(String shortCode, HttpServletRequest request) {
-        ShortLink shortLink = shortLinkRepository
-                .findByShortCode(shortCode)
+        ShortLink shortLink = shortLinkRepository.findByShortCode(shortCode)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "short link not found"));
 
         if (shortLink.getStatus() != 1) {
@@ -103,20 +101,16 @@ public class ShortLinkServiceImpl implements ShortLinkService {
             stringRedisTemplate.opsForValue().set(redisKey, originalUrl);
         }
 
-        shortLink.setPv(shortLink.getPv() + 1);
-        shortLink.setLastAccessTime(LocalDateTime.now());
-        shortLink.setUpdatedAt(LocalDateTime.now());
-        shortLinkRepository.save(shortLink);
+        ShortLinkAccessEvent event = new ShortLinkAccessEvent();
+        event.setShortLinkId(shortLink.getId());
+        event.setShortCode(shortLink.getShortCode());
+        event.setOriginalUrl(shortLink.getOriginalUrl());
+        event.setClientIp(getClientIp(request));
+        event.setUserAgent(request.getHeader("User-Agent"));
+        event.setReferer(request.getHeader("Referer"));
+        event.setAccessTimestamp(System.currentTimeMillis());
 
-        ShortLinkAccessLog accessLog = new ShortLinkAccessLog();
-        accessLog.setShortLinkId(shortLink.getId());
-        accessLog.setShortCode(shortLink.getShortCode());
-        accessLog.setOriginalUrl(shortLink.getOriginalUrl());
-        accessLog.setClientIp(getClientIp(request));
-        accessLog.setUserAgent(request.getHeader("User-Agent"));
-        accessLog.setReferer(request.getHeader("Referer"));
-        accessLog.setAccessTime(LocalDateTime.now());
-        shortLinkAccessLogRepository.save(accessLog);
+        shortLinkAccessEventProducer.sendAccessEvent(event);
 
         return originalUrl;
     }
