@@ -18,4 +18,5 @@ public interface ShortLinkService {
     ShortLinkStatsDetailResponse getStatsDetail(Long id);
 
     List<TopShortLinkItemResponse> listTopLinks(Integer limit);
+    List<PvTrendItemResponse> getPvTrend(Long id, Integer days);
 }

@@ -24,6 +24,12 @@ import com.cookie.linkpulse.repository.ShortLinkAccessLogRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Sort;
+import com.cookie.linkpulse.dto.PvTrendItemResponse;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 
 import java.util.ArrayList;
 @Service
@@ -209,5 +215,35 @@ public class ShortLinkServiceImpl implements ShortLinkService {
 
         String redisKey = "short_link:" + shortLink.getShortCode();
         stringRedisTemplate.delete(redisKey);
+    }
+    @Override
+    public List<PvTrendItemResponse> getPvTrend(Long id, Integer days) {
+        ShortLink shortLink = shortLinkRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "short link not found"));
+
+        int safeDays = (days == null || days < 1) ? 7 : days;
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(safeDays - 1);
+
+        List<Object[]> rows = shortLinkAccessLogRepository.countPvTrend(
+                shortLink.getId(),
+                startDate.atStartOfDay().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        );
+
+        Map<String, Long> pvMap = new HashMap<>();
+        for (Object[] row : rows) {
+            String date = row[0].toString();
+            Long pv = ((Number) row[1]).longValue();
+            pvMap.put(date, pv);
+        }
+
+        List<PvTrendItemResponse> result = new ArrayList<>();
+        for (int i = 0; i < safeDays; i++) {
+            LocalDate current = startDate.plusDays(i);
+            String dateStr = current.toString();
+            result.add(new PvTrendItemResponse(dateStr, pvMap.getOrDefault(dateStr, 0L)));
+        }
+
+        return result;
     }
 }
