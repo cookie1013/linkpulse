@@ -1,0 +1,39 @@
+dataSources:
+  ds_0:
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+    driverClassName: com.mysql.cj.jdbc.Driver
+    jdbcUrl: jdbc:mysql://localhost:3306/linkpulse?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8
+    username: linkpulse_user
+    password: xuqi123456789
+
+rules:
+  - !SHARDING
+    tables:
+      short_link_access_log:
+        actualDataNodes: ds_0.short_link_access_log_${0..1}
+        tableStrategy:
+          standard:
+            shardingColumn: short_link_id
+            shardingAlgorithmName: access_log_inline
+        keyGenerateStrategy:
+          column: id
+          keyGeneratorName: snowflake
+
+    shardingAlgorithms:
+      access_log_inline:
+        type: INLINE
+        props:
+          algorithm-expression: short_link_access_log_${short_link_id % 2}
+
+    keyGenerators:
+      snowflake:
+        type: SNOWFLAKE
+
+  - !SINGLE
+    tables:
+      - ds_0.short_link
+      - ds_0.sys_user
+    defaultDataSource: ds_0
+
+props:
+  sql-show: true
