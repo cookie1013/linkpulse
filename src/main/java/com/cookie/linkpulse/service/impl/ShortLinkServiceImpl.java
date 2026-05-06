@@ -9,6 +9,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import com.cookie.linkpulse.dto.ShortLinkStatsOverviewResponse;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -121,6 +125,59 @@ public class ShortLinkServiceImpl implements ShortLinkService {
         return originalUrl;
     }
 
+    @Override
+    public ShortLinkStatsOverviewResponse getStatsOverview(Long id) {
+        ShortLink shortLink = shortLinkRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "short link not found"));
+
+        LocalDate today = LocalDate.now();
+        LocalDate yesterday = today.minusDays(1);
+        LocalDate last7DaysStart = today.minusDays(6);
+        LocalDate tomorrow = today.plusDays(1);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        String todayStart = today.atStartOfDay().format(formatter);
+        String tomorrowStart = tomorrow.atStartOfDay().format(formatter);
+
+        String yesterdayStart = yesterday.atStartOfDay().format(formatter);
+        String todayStartForYesterdayEnd = today.atStartOfDay().format(formatter);
+
+        String last7DaysStartTime = last7DaysStart.atStartOfDay().format(formatter);
+
+        Long todayPv = shortLinkAccessLogRepository.countPvInRange(
+                id,
+                todayStart,
+                tomorrowStart
+        );
+
+        Long yesterdayPv = shortLinkAccessLogRepository.countPvInRange(
+                id,
+                yesterdayStart,
+                todayStartForYesterdayEnd
+        );
+
+        Long last7DaysPv = shortLinkAccessLogRepository.countPvInRange(
+                id,
+                last7DaysStartTime,
+                tomorrowStart
+        );
+
+        Long uniqueIpCount = shortLinkAccessLogRepository.countUniqueIp(id);
+
+        return new ShortLinkStatsOverviewResponse(
+                shortLink.getId(),
+                shortLink.getShortCode(),
+                shortLink.getOriginalUrl(),
+                "http://localhost:8080/" + shortLink.getShortCode(),
+                shortLink.getPv(),
+                todayPv == null ? 0L : todayPv,
+                yesterdayPv == null ? 0L : yesterdayPv,
+                last7DaysPv == null ? 0L : last7DaysPv,
+                uniqueIpCount == null ? 0L : uniqueIpCount,
+                shortLink.getLastAccessTime()
+        );
+    }
     @Override
     public ShortLinkStatsDetailResponse getStatsDetail(Long id) {
         ShortLink shortLink = shortLinkRepository.findById(id)

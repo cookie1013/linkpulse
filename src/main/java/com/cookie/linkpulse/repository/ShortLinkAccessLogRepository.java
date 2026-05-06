@@ -21,4 +21,23 @@ public interface ShortLinkAccessLogRepository extends JpaRepository<ShortLinkAcc
             """, nativeQuery = true)
     List<Object[]> countPvTrend(@Param("shortLinkId") Long shortLinkId,
                                 @Param("startTime") String startTime);
+
+    @Query(value = """
+            SELECT COUNT(*)
+            FROM short_link_access_log
+            WHERE short_link_id = :shortLinkId
+              AND access_time >= :startTime
+              AND access_time < :endTime
+            """, nativeQuery = true)
+    Long countPvInRange(@Param("shortLinkId") Long shortLinkId,
+                        @Param("startTime") String startTime,
+                        @Param("endTime") String endTime);
+
+    @Query(value = """
+            SELECT COUNT(DISTINCT client_ip)
+            FROM short_link_access_log
+            WHERE short_link_id = :shortLinkId
+              AND client_ip IS NOT NULL
+            """, nativeQuery = true)
+    Long countUniqueIp(@Param("shortLinkId") Long shortLinkId);
 }

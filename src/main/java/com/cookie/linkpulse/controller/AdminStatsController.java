@@ -1,5 +1,5 @@
 package com.cookie.linkpulse.controller;
-
+import com.cookie.linkpulse.dto.ShortLinkStatsOverviewResponse;
 import com.cookie.linkpulse.common.ApiResponse;
 import com.cookie.linkpulse.dto.ShortLinkStatsDetailResponse;
 import com.cookie.linkpulse.dto.TopShortLinkItemResponse;
@@ -33,5 +33,9 @@ public class AdminStatsController {
             @PathVariable Long id,
             @RequestParam(defaultValue = "7") Integer days) {
         return ApiResponse.success(shortLinkService.getPvTrend(id, days));
+    }
+    @GetMapping("/links/{id}/overview")
+    public ApiResponse<ShortLinkStatsOverviewResponse> getStatsOverview(@PathVariable Long id) {
+        return ApiResponse.success(shortLinkService.getStatsOverview(id));
     }
 }
