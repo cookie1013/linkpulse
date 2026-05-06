@@ -59,4 +59,12 @@ public interface ShortLinkAccessLogRepository extends JpaRepository<ShortLinkAcc
         ORDER BY pv DESC
         """, nativeQuery = true)
     List<Object[]> countRefererStats(@Param("shortLinkId") Long shortLinkId);
+    @Query(value = """
+        SELECT user_agent AS userAgent, COUNT(*) AS pv
+        FROM short_link_access_log
+        WHERE short_link_id = :shortLinkId
+        GROUP BY user_agent
+        ORDER BY pv DESC
+        """, nativeQuery = true)
+    List<Object[]> countUserAgentStats(@Param("shortLinkId") Long shortLinkId);
 }

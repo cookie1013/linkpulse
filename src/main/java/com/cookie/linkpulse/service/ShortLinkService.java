@@ -22,4 +22,5 @@ public interface ShortLinkService {
     ShortLinkStatsOverviewResponse getStatsOverview(Long id);
     PageResponse<AccessLogPageItemResponse> pageAccessLogs(Long id, Integer pageNum, Integer pageSize);
     List<RefererStatsItemResponse> getRefererStats(Long id);
+    List<UserAgentStatsItemResponse> getUserAgentStats(Long id);
 }

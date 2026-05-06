@@ -38,6 +38,10 @@ import com.cookie.linkpulse.dto.AccessLogPageItemResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import com.cookie.linkpulse.dto.UserAgentStatsItemResponse;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 
 import java.util.ArrayList;
 @Service
@@ -47,7 +51,30 @@ public class ShortLinkServiceImpl implements ShortLinkService {
     private final StringRedisTemplate stringRedisTemplate;
     private final ShortLinkAccessLogRepository shortLinkAccessLogRepository;
     private final ShortLinkAccessEventProducer shortLinkAccessEventProducer;
+    private String classifyUserAgent(String userAgent) {
+        if (userAgent == null || userAgent.isBlank()) {
+            return "unknown";
+        }
 
+        String lower = userAgent.toLowerCase();
+
+        if (lower.contains("postmanruntime") || lower.contains("postman")) {
+            return "Postman";
+        }
+
+        if (lower.startsWith("curl") || lower.contains("curl/")) {
+            return "curl";
+        }
+
+        if (lower.contains("chrome/")
+                || lower.contains("edg/")
+                || lower.contains("firefox/")
+                || lower.contains("safari/")) {
+            return "Browser";
+        }
+
+        return "Other";
+    }
     public ShortLinkServiceImpl(ShortLinkRepository shortLinkRepository,
                                 StringRedisTemplate stringRedisTemplate,
                                 ShortLinkAccessLogRepository shortLinkAccessLogRepository,
@@ -128,7 +155,29 @@ public class ShortLinkServiceImpl implements ShortLinkService {
 
         return originalUrl;
     }
+    @Override
+    public List<UserAgentStatsItemResponse> getUserAgentStats(Long id) {
+        ShortLink shortLink = shortLinkRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "short link not found"));
 
+        List<Object[]> rows = shortLinkAccessLogRepository.countUserAgentStats(shortLink.getId());
+
+        Map<String, Long> statsMap = new HashMap<>();
+
+        for (Object[] row : rows) {
+            String rawUserAgent = row[0] == null ? null : row[0].toString();
+            Long pv = ((Number) row[1]).longValue();
+
+            String clientType = classifyUserAgent(rawUserAgent);
+            statsMap.put(clientType, statsMap.getOrDefault(clientType, 0L) + pv);
+        }
+
+        return statsMap.entrySet()
+                .stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue(Comparator.reverseOrder()))
+                .map(entry -> new UserAgentStatsItemResponse(entry.getKey(), entry.getValue()))
+                .toList();
+    }
     @Override
     public ShortLinkStatsOverviewResponse getStatsOverview(Long id) {
         ShortLink shortLink = shortLinkRepository.findById(id)

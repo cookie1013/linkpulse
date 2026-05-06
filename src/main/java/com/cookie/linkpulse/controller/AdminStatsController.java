@@ -10,6 +10,7 @@ import java.util.List;
 import com.cookie.linkpulse.dto.AccessLogPageItemResponse;
 import com.cookie.linkpulse.dto.PageResponse;
 import com.cookie.linkpulse.dto.RefererStatsItemResponse;
+import com.cookie.linkpulse.dto.UserAgentStatsItemResponse;
 
 @RestController
 @RequestMapping("/api/admin/stats")
@@ -51,5 +52,9 @@ public class AdminStatsController {
     @GetMapping("/links/{id}/referers")
     public ApiResponse<List<RefererStatsItemResponse>> getRefererStats(@PathVariable Long id) {
         return ApiResponse.success(shortLinkService.getRefererStats(id));
+    }
+    @GetMapping("/links/{id}/user-agents")
+    public ApiResponse<List<UserAgentStatsItemResponse>> getUserAgentStats(@PathVariable Long id) {
+        return ApiResponse.success(shortLinkService.getUserAgentStats(id));
     }
 }
