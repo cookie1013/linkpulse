@@ -9,6 +9,7 @@ import com.cookie.linkpulse.dto.PvTrendItemResponse;
 import java.util.List;
 import com.cookie.linkpulse.dto.AccessLogPageItemResponse;
 import com.cookie.linkpulse.dto.PageResponse;
+import com.cookie.linkpulse.dto.RefererStatsItemResponse;
 
 @RestController
 @RequestMapping("/api/admin/stats")
@@ -46,5 +47,9 @@ public class AdminStatsController {
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "10") Integer pageSize) {
         return ApiResponse.success(shortLinkService.pageAccessLogs(id, pageNum, pageSize));
+    }
+    @GetMapping("/links/{id}/referers")
+    public ApiResponse<List<RefererStatsItemResponse>> getRefererStats(@PathVariable Long id) {
+        return ApiResponse.success(shortLinkService.getRefererStats(id));
     }
 }

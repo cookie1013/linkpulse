@@ -29,7 +29,7 @@ import com.cookie.linkpulse.repository.ShortLinkAccessLogRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Sort;
 import com.cookie.linkpulse.dto.PvTrendItemResponse;
-
+import com.cookie.linkpulse.dto.RefererStatsItemResponse;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -236,6 +236,20 @@ public class ShortLinkServiceImpl implements ShortLinkService {
                 shortLink.getExpireTime(),
                 recentLogs
         );
+    }
+    @Override
+    public List<RefererStatsItemResponse> getRefererStats(Long id) {
+        ShortLink shortLink = shortLinkRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "short link not found"));
+
+        List<Object[]> rows = shortLinkAccessLogRepository.countRefererStats(shortLink.getId());
+
+        return rows.stream()
+                .map(row -> new RefererStatsItemResponse(
+                        row[0] == null ? "direct" : row[0].toString(),
+                        ((Number) row[1]).longValue()
+                ))
+                .toList();
     }
     @Override
     public List<TopShortLinkItemResponse> listTopLinks(Integer limit) {

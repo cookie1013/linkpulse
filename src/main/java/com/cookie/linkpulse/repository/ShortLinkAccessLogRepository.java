@@ -42,4 +42,21 @@ public interface ShortLinkAccessLogRepository extends JpaRepository<ShortLinkAcc
             """, nativeQuery = true)
     Long countUniqueIp(@Param("shortLinkId") Long shortLinkId);
     Page<ShortLinkAccessLog> findByShortLinkIdOrderByAccessTimeDesc(Long shortLinkId, Pageable pageable);
+    @Query(value = """
+        SELECT 
+            CASE 
+                WHEN referer IS NULL OR referer = '' THEN 'direct'
+                ELSE referer
+            END AS refererSource,
+            COUNT(*) AS pv
+        FROM short_link_access_log
+        WHERE short_link_id = :shortLinkId
+        GROUP BY 
+            CASE 
+                WHEN referer IS NULL OR referer = '' THEN 'direct'
+                ELSE referer
+            END
+        ORDER BY pv DESC
+        """, nativeQuery = true)
+    List<Object[]> countRefererStats(@Param("shortLinkId") Long shortLinkId);
 }

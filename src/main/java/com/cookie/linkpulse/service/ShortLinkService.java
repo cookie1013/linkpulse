@@ -21,4 +21,5 @@ public interface ShortLinkService {
     List<PvTrendItemResponse> getPvTrend(Long id, Integer days);
     ShortLinkStatsOverviewResponse getStatsOverview(Long id);
     PageResponse<AccessLogPageItemResponse> pageAccessLogs(Long id, Integer pageNum, Integer pageSize);
+    List<RefererStatsItemResponse> getRefererStats(Long id);
 }
