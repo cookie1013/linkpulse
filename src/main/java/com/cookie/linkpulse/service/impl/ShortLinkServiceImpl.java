@@ -34,6 +34,10 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import com.cookie.linkpulse.dto.AccessLogPageItemResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.ArrayList;
 @Service
@@ -177,6 +181,33 @@ public class ShortLinkServiceImpl implements ShortLinkService {
                 uniqueIpCount == null ? 0L : uniqueIpCount,
                 shortLink.getLastAccessTime()
         );
+    }
+    @Override
+    public PageResponse<AccessLogPageItemResponse> pageAccessLogs(Long id, Integer pageNum, Integer pageSize) {
+        ShortLink shortLink = shortLinkRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "short link not found"));
+
+        int safePageNum = (pageNum == null || pageNum < 1) ? 1 : pageNum;
+        int safePageSize = (pageSize == null || pageSize < 1) ? 10 : pageSize;
+
+        Pageable pageable = PageRequest.of(safePageNum - 1, safePageSize);
+
+        Page<ShortLinkAccessLog> page = shortLinkAccessLogRepository
+                .findByShortLinkIdOrderByAccessTimeDesc(shortLink.getId(), pageable);
+
+        List<AccessLogPageItemResponse> records = page.getContent().stream()
+                .map(log -> new AccessLogPageItemResponse(
+                        log.getId(),
+                        log.getShortLinkId(),
+                        log.getShortCode(),
+                        log.getClientIp(),
+                        log.getUserAgent(),
+                        log.getReferer(),
+                        log.getAccessTime()
+                ))
+                .toList();
+
+        return new PageResponse<>(records, page.getTotalElements(), safePageNum, safePageSize);
     }
     @Override
     public ShortLinkStatsDetailResponse getStatsDetail(Long id) {

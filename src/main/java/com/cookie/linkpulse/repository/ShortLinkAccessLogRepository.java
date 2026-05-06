@@ -4,7 +4,8 @@ import com.cookie.linkpulse.entity.ShortLinkAccessLog;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 public interface ShortLinkAccessLogRepository extends JpaRepository<ShortLinkAccessLog, Long> {
@@ -40,4 +41,5 @@ public interface ShortLinkAccessLogRepository extends JpaRepository<ShortLinkAcc
               AND client_ip IS NOT NULL
             """, nativeQuery = true)
     Long countUniqueIp(@Param("shortLinkId") Long shortLinkId);
+    Page<ShortLinkAccessLog> findByShortLinkIdOrderByAccessTimeDesc(Long shortLinkId, Pageable pageable);
 }

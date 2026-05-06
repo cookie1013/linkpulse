@@ -7,6 +7,8 @@ import com.cookie.linkpulse.service.ShortLinkService;
 import org.springframework.web.bind.annotation.*;
 import com.cookie.linkpulse.dto.PvTrendItemResponse;
 import java.util.List;
+import com.cookie.linkpulse.dto.AccessLogPageItemResponse;
+import com.cookie.linkpulse.dto.PageResponse;
 
 @RestController
 @RequestMapping("/api/admin/stats")
@@ -37,5 +39,12 @@ public class AdminStatsController {
     @GetMapping("/links/{id}/overview")
     public ApiResponse<ShortLinkStatsOverviewResponse> getStatsOverview(@PathVariable Long id) {
         return ApiResponse.success(shortLinkService.getStatsOverview(id));
+    }
+    @GetMapping("/links/{id}/logs")
+    public ApiResponse<PageResponse<AccessLogPageItemResponse>> pageAccessLogs(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "1") Integer pageNum,
+            @RequestParam(defaultValue = "10") Integer pageSize) {
+        return ApiResponse.success(shortLinkService.pageAccessLogs(id, pageNum, pageSize));
     }
 }
