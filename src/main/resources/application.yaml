@@ -28,3 +28,10 @@ rocketmq:
   name-server: 127.0.0.1:9876
   producer:
     group: linkpulse-access-event-producer
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha

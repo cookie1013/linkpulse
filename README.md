@@ -65,6 +65,8 @@ LinkPulse 是一个基于 Spring Boot 的短链接管理与访问分析平台，
 - 统计概览接口：支持查询总 PV、今日 PV、昨日 PV、近 7 日 PV、独立 IP 数和最近访问时间
 - 访问日志分页查询：支持后台按短链分页查看完整访问明细
 - Referer 来源统计：支持统计短链访问来源分布，并将直接访问归类为 direct
+- User-Agent 客户端统计：支持将访问客户端归类为 Browser、curl、Postman、Other 等类型
+
 
 ### 高并发保护
 
