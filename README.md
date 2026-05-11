@@ -1222,4 +1222,4 @@ password: Admin@123456
 - 接入 Swagger / OpenAPI 和 Postman Collection，方便接口调试和项目展示。
 - 增加全局异常处理机制，统一拦截业务异常、参数校验异常和系统异常，避免接口返回 Whitelabel Error Page，提升后端服务的规范性。
 - 增强接口参数校验，对 URL、过期时间、分页参数和统计查询参数进行约束，避免非法请求进入业务逻辑。
-提供基于 Vue 3 + Element Plus + ECharts 的轻量级管理后台，支持短链管理、统计概览、PV 趋势、Referer 来源和 User-Agent 客户端分布展示，提升项目可演示性。
+- 提供基于 Vue 3 + Element Plus + ECharts 的轻量级管理后台，支持短链管理、统计概览、PV 趋势、Referer 来源和 User-Agent 客户端分布展示，提升项目可演示性。
