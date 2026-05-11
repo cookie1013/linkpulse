@@ -30,7 +30,7 @@ public class GlobalExceptionHandler {
                 .getFieldErrors()
                 .stream()
                 .findFirst()
-                .map(error -> error.getField() + " " + error.getDefaultMessage())
+                .map(error -> error.getDefaultMessage())
                 .orElse("invalid request parameter");
 
         return ResponseEntity
@@ -44,7 +44,7 @@ public class GlobalExceptionHandler {
                 .getFieldErrors()
                 .stream()
                 .findFirst()
-                .map(error -> error.getField() + " " + error.getDefaultMessage())
+                .map(error -> error.getDefaultMessage())
                 .orElse("invalid request parameter");
 
         return ResponseEntity

@@ -1180,3 +1180,4 @@ short_link_access_log_1    22
 - 实现多维访问分析能力，包括 PV 趋势、统计概览、访问日志分页、Referer 来源统计、User-Agent 统计和热门短链排行。
 - 接入 Swagger / OpenAPI 和 Postman Collection，方便接口调试和项目展示。
 - 增加全局异常处理机制，统一拦截业务异常、参数校验异常和系统异常，避免接口返回 Whitelabel Error Page，提升后端服务的规范性。
+- 增强接口参数校验，对 URL、过期时间、分页参数和统计查询参数进行约束，避免非法请求进入业务逻辑。

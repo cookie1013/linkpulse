@@ -4,13 +4,20 @@ import com.alibaba.csp.sentinel.Entry;
 import com.alibaba.csp.sentinel.SphU;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.cookie.linkpulse.common.ApiResponse;
-import com.cookie.linkpulse.dto.*;
+import com.cookie.linkpulse.dto.CreateShortLinkRequest;
+import com.cookie.linkpulse.dto.PageResponse;
+import com.cookie.linkpulse.dto.ShortLinkPageItemResponse;
+import com.cookie.linkpulse.dto.ShortLinkPageQuery;
+import com.cookie.linkpulse.dto.ShortLinkResponse;
 import com.cookie.linkpulse.service.ShortLinkService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+@Validated
 @RestController
 @RequestMapping("/api/admin/links")
 public class AdminShortLinkController {
@@ -44,12 +51,15 @@ public class AdminShortLinkController {
     }
 
     @GetMapping
-    public ApiResponse<PageResponse<ShortLinkPageItemResponse>> pageQuery(ShortLinkPageQuery query) {
+    public ApiResponse<PageResponse<ShortLinkPageItemResponse>> pageQuery(@Valid ShortLinkPageQuery query) {
         return ApiResponse.success(shortLinkService.pageQuery(query));
     }
 
     @PatchMapping("/{id}/disable")
-    public ApiResponse<Void> disableShortLink(@PathVariable Long id) {
+    public ApiResponse<Void> disableShortLink(
+            @PathVariable
+            @Min(value = 1, message = "id must be greater than or equal to 1")
+            Long id) {
         shortLinkService.disableShortLink(id);
         return ApiResponse.success(null);
     }
