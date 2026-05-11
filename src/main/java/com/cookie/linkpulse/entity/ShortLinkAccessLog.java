@@ -32,6 +32,9 @@ public class ShortLinkAccessLog {
     @Column(name = "access_time", nullable = false)
     private LocalDateTime accessTime;
 
+    @Column(name = "event_id", length = 64)
+    private String eventId;
+
     public ShortLinkAccessLog() {
     }
 
@@ -93,5 +96,12 @@ public class ShortLinkAccessLog {
 
     public void setAccessTime(LocalDateTime accessTime) {
         this.accessTime = accessTime;
+    }
+    public String getEventId() {
+        return eventId;
+    }
+
+    public void setEventId(String eventId) {
+        this.eventId = eventId;
     }
 }

@@ -67,4 +67,5 @@ public interface ShortLinkAccessLogRepository extends JpaRepository<ShortLinkAcc
         ORDER BY pv DESC
         """, nativeQuery = true)
     List<Object[]> countUserAgentStats(@Param("shortLinkId") Long shortLinkId);
+    boolean existsByShortLinkIdAndEventId(Long shortLinkId, String eventId);
 }

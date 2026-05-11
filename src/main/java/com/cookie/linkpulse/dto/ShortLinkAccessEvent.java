@@ -14,6 +14,7 @@ public class ShortLinkAccessEvent implements Serializable {
     private String userAgent;
     private String referer;
     private Long accessTimestamp;
+    private String eventId;
 
     public ShortLinkAccessEvent() {
     }
@@ -72,5 +73,13 @@ public class ShortLinkAccessEvent implements Serializable {
 
     public void setAccessTimestamp(Long accessTimestamp) {
         this.accessTimestamp = accessTimestamp;
+    }
+
+    public String getEventId() {
+        return eventId;
+    }
+
+    public void setEventId(String eventId) {
+        this.eventId = eventId;
     }
 }

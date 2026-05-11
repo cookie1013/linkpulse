@@ -42,6 +42,7 @@ import com.cookie.linkpulse.dto.UserAgentStatsItemResponse;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import java.util.ArrayList;
 @Service
@@ -150,6 +151,7 @@ public class ShortLinkServiceImpl implements ShortLinkService {
         event.setUserAgent(request.getHeader("User-Agent"));
         event.setReferer(request.getHeader("Referer"));
         event.setAccessTimestamp(System.currentTimeMillis());
+        event.setEventId(UUID.randomUUID().toString());
 
         shortLinkAccessEventProducer.sendAccessEvent(event);
 

@@ -21,9 +21,6 @@ public class ShortLinkAccessEventConsumer implements RocketMQListener<ShortLinkA
 
     @Override
     public void onMessage(ShortLinkAccessEvent message) {
-        System.out.println("RocketMQ consumer received message: shortCode="
-                + message.getShortCode() + ", accessTimestamp=" + message.getAccessTimestamp());
-
-        shortLinkStatsAsyncService.recordAccessEvent(message);
+        shortLinkStatsAsyncService.handleAccessEvent(message);
     }
 }

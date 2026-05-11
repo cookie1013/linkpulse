@@ -12,6 +12,8 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
+import java.util.UUID;
+
 @Service
 public class ShortLinkStatsAsyncService {
 
@@ -25,23 +27,41 @@ public class ShortLinkStatsAsyncService {
     }
 
     @Transactional
-    public void recordAccessEvent(ShortLinkAccessEvent event) {
-        ShortLink shortLink = shortLinkRepository.findById(event.getShortLinkId()).orElse(null);
-        if (shortLink == null) {
+    public void handleAccessEvent(ShortLinkAccessEvent event) {
+        String eventId = event.getEventId();
+
+        if (eventId == null || eventId.isBlank()) {
+            eventId = UUID.randomUUID().toString();
+        }
+
+        boolean processed = shortLinkAccessLogRepository.existsByShortLinkIdAndEventId(
+                event.getShortLinkId(),
+                eventId
+        );
+
+        if (processed) {
+            System.out.println("Duplicate access event ignored, eventId=" + eventId);
             return;
         }
 
-        LocalDateTime accessTime = LocalDateTime.ofInstant(
-                Instant.ofEpochMilli(event.getAccessTimestamp()),
-                ZoneId.systemDefault()
-        );
+        ShortLink shortLink = shortLinkRepository.findById(event.getShortLinkId())
+                .orElse(null);
 
-        shortLink.setPv(shortLink.getPv() + 1);
+        if (shortLink == null) {
+            System.out.println("Short link not found when consuming access event, shortLinkId=" + event.getShortLinkId());
+            return;
+        }
+
+        LocalDateTime accessTime = toLocalDateTime(event.getAccessTimestamp());
+
+        Long currentPv = shortLink.getPv() == null ? 0L : shortLink.getPv();
+        shortLink.setPv(currentPv + 1);
         shortLink.setLastAccessTime(accessTime);
         shortLink.setUpdatedAt(LocalDateTime.now());
         shortLinkRepository.save(shortLink);
 
         ShortLinkAccessLog accessLog = new ShortLinkAccessLog();
+        accessLog.setEventId(eventId);
         accessLog.setShortLinkId(event.getShortLinkId());
         accessLog.setShortCode(event.getShortCode());
         accessLog.setOriginalUrl(event.getOriginalUrl());
@@ -51,5 +71,17 @@ public class ShortLinkStatsAsyncService {
         accessLog.setAccessTime(accessTime);
 
         shortLinkAccessLogRepository.save(accessLog);
+
+        System.out.println("Access event consumed, eventId=" + eventId + ", shortCode=" + event.getShortCode());
+    }
+
+    private LocalDateTime toLocalDateTime(Long timestamp) {
+        if (timestamp == null) {
+            return LocalDateTime.now();
+        }
+
+        return Instant.ofEpochMilli(timestamp)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime();
     }
 }

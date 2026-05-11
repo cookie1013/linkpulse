@@ -557,18 +557,62 @@ short_link:773ec2 -> https://www.meituan.com
 
 ---
 
-### 8.2 RocketMQ 异步统计设计
+### 8.2 RocketMQ 异步统计与幂等设计
 
 短链跳转接口是系统核心主链路，如果在跳转时同步更新 PV 和访问日志，会增加接口耗时。
 
 因此系统将访问统计设计为异步链路：
 
-1. 用户访问短链。
-2. 主链路完成短链校验和跳转。
-3. 发送访问事件到 RocketMQ。
-4. 消费者异步更新 PV、lastAccessTime 和访问日志。
+```text
+用户访问短链
+     |
+     v
+主链路完成短链校验和 302 跳转
+     |
+     v
+生成 ShortLinkAccessEvent 访问事件
+     |
+     v
+发送到 RocketMQ
+     |
+     v
+消费者异步更新 PV / lastAccessTime / access_log
+```
 
 该设计可以降低跳转接口的同步写库压力，使统计逻辑和跳转逻辑解耦。
+
+同时，RocketMQ 在网络抖动、消费者异常重试等场景下可能出现重复投递或重复消费。为了避免同一条访问事件被重复统计，系统在访问事件中引入 `eventId` 作为幂等键。
+
+幂等处理流程：
+
+```text
+消费者接收 ShortLinkAccessEvent
+     |
+     v
+读取 eventId
+     |
+     v
+根据 shortLinkId + eventId 查询访问日志是否已存在
+     |
+     |-- 已存在 -> 说明该消息已处理，直接忽略
+     |
+     |-- 不存在 -> 更新 PV，并插入访问日志
+```
+
+访问日志表新增字段：
+
+```text
+event_id
+```
+
+并在真实分表中建立唯一索引：
+
+```text
+short_link_access_log_0(event_id)
+short_link_access_log_1(event_id)
+```
+
+通过 `eventId` 幂等校验，可以避免 RocketMQ 重复消费导致 PV 重复累加和访问日志重复插入。
 
 ---
 
@@ -833,7 +877,48 @@ http://localhost:8080/swagger-ui/index.html
 并支持 Bearer Token 鉴权后在线调试后台接口。
 
 ---
+### 12.5 RocketMQ 重复消费幂等验证
 
+为了验证 RocketMQ 异步统计链路的幂等性，系统提供了本地测试接口：
+
+```http
+GET /mq-duplicate-test
+```
+
+该接口会构造两条完全相同的访问事件消息，并发送到 RocketMQ：
+
+```text
+相同 shortLinkId
+相同 shortCode
+相同 referer
+相同 eventId
+```
+
+预期结果：
+
+```text
+第一条消息正常消费，更新 PV 并插入访问日志；
+第二条消息被识别为重复消息，直接忽略，不再重复统计。
+```
+
+验证 SQL：
+
+```sql
+SELECT event_id, COUNT(*) AS cnt
+FROM short_link_access_log_1
+WHERE referer = 'mq-duplicate-test'
+GROUP BY event_id
+ORDER BY MAX(access_time) DESC;
+```
+
+验证结果示例：
+
+```text
+event_id                              cnt
+bd4f3ca6-...                           1
+```
+
+该结果说明：同一个 `eventId` 的重复 MQ 消息最终只落库一次，消费者幂等逻辑生效。
 ## 13. 轻量压测结果
 
 本项目使用 `curl` 对核心接口进行了轻量压测，主要验证短链跳转性能、Sentinel 限流效果、统计接口响应耗时以及 ShardingSphere 分表写入情况。
@@ -1087,7 +1172,8 @@ short_link_access_log_1    22
 
 - 基于 Spring Security + JWT 实现后台接口鉴权。
 - 使用 Redis 缓存短链映射，降低高频跳转场景下的数据库查询压力。
-- 使用 RocketMQ 将访问统计异步化，降低跳转主链路同步写库压力。
+- 使用 RocketMQ 将访问统计异步化，降低跳转主链路同步写库压力，并通过 eventId 幂等键避免 MQ 重复消费导致 PV 重复累加和访问日志重复插入。
+- 针对 RocketMQ 可能重复投递的问题，在访问事件中引入 eventId，并在消费者侧基于 shortLinkId + eventId 做幂等校验，提升异步统计链路的数据一致性。
 - 使用 Sentinel 对短链跳转和后台创建接口进行 QPS 限流。
 - 使用 ShardingSphere 对访问日志表进行水平分表，支撑日志数据持续增长。
 - 实现多维访问分析能力，包括 PV 趋势、统计概览、访问日志分页、Referer 来源统计、User-Agent 统计和热门短链排行。
