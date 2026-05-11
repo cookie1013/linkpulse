@@ -271,7 +271,7 @@ short_link_access_log_1
 ## 6. 核心接口
 
 ### 6.1 登录
-
+> 默认管理员账号仅用于本地开发测试，生产环境应通过环境变量或初始化脚本设置独立账号密码。
 ```http
 POST /api/auth/login
 ```
@@ -725,7 +725,7 @@ CREATE DATABASE linkpulse;
 如果需要创建项目专用用户，可以执行：
 
 ```sql
-CREATE USER IF NOT EXISTS 'linkpulse_user'@'localhost' IDENTIFIED BY 'Linkpulse@123456';
+CREATE USER IF NOT EXISTS 'linkpulse_user'@'localhost' IDENTIFIED BY 'your_password';
 GRANT ALL PRIVILEGES ON linkpulse.* TO 'linkpulse_user'@'localhost';
 FLUSH PRIVILEGES;
 ```
@@ -1168,8 +1168,49 @@ short_link_access_log_1    22
 - 访问日志已经通过 ShardingSphere 写入分表，具备一定的数据扩展能力。
 
 ---
+## 14 前端管理台
 
-## 14. 项目亮点
+项目提供轻量级前端管理台，用于演示短链接管理与访问分析能力。
+
+前端技术栈：
+
+- Vue 3
+- Vite
+- Element Plus
+- Axios
+- ECharts
+
+前端功能：
+
+- 管理员登录
+- 短链分页查询
+- 按短码和原始链接筛选
+- 创建短链接
+- 禁用短链接
+- 查看统计概览
+- 查看近 7 日 PV 趋势
+- 查看 Referer 来源分布
+- 查看 User-Agent 客户端分布
+- 查看热门短链 TopN
+
+启动方式：
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+访问地址：
+```
+http://localhost:5173/login
+```
+默认开发账号：
+```
+username: admin
+password: Admin@123456
+```
+
+## 15. 项目亮点
 
 - 基于 Spring Security + JWT 实现后台接口鉴权。
 - 使用 Redis 缓存短链映射，降低高频跳转场景下的数据库查询压力。
@@ -1181,3 +1222,4 @@ short_link_access_log_1    22
 - 接入 Swagger / OpenAPI 和 Postman Collection，方便接口调试和项目展示。
 - 增加全局异常处理机制，统一拦截业务异常、参数校验异常和系统异常，避免接口返回 Whitelabel Error Page，提升后端服务的规范性。
 - 增强接口参数校验，对 URL、过期时间、分页参数和统计查询参数进行约束，避免非法请求进入业务逻辑。
+提供基于 Vue 3 + Element Plus + ECharts 的轻量级管理后台，支持短链管理、统计概览、PV 趋势、Referer 来源和 User-Agent 客户端分布展示，提升项目可演示性。
