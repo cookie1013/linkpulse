@@ -919,6 +919,7 @@ bd4f3ca6-...                           1
 ```
 
 该结果说明：同一个 `eventId` 的重复 MQ 消息最终只落库一次，消费者幂等逻辑生效。
+> `/mq-test` 和 `/mq-duplicate-test` 仅用于本地开发环境验证 RocketMQ 消息发送与幂等消费逻辑，Controller 已通过 `@Profile("dev")` 限制只在 dev 环境启用，生产环境不暴露该测试接口。
 ## 13. 轻量压测结果
 
 本项目使用 `curl` 对核心接口进行了轻量压测，主要验证短链跳转性能、Sentinel 限流效果、统计接口响应耗时以及 ShardingSphere 分表写入情况。

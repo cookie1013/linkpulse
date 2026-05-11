@@ -2,6 +2,7 @@ package com.cookie.linkpulse.controller;
 
 import com.cookie.linkpulse.dto.ShortLinkAccessEvent;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.UUID;
@@ -9,6 +10,8 @@ import java.time.LocalDateTime;
 import com.cookie.linkpulse.dto.ShortLinkAccessEvent;
 import java.util.UUID;
 import com.cookie.linkpulse.service.ShortLinkAccessEventProducer;
+
+@Profile("dev")
 @RestController
 public class RocketMqTestController {
 
