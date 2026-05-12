@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-
+import com.cookie.linkpulse.common.constant.SentinelResourceConstants;
 @RestController
 public class RedirectController {
 
@@ -26,7 +26,7 @@ public class RedirectController {
         Entry entry = null;
 
         try {
-            entry = SphU.entry("short-link-redirect");
+            entry = SphU.entry(SentinelResourceConstants.SHORT_LINK_REDIRECT);
 
             String originalUrl = shortLinkService.getOriginalUrlByShortCode(shortCode, request);
 

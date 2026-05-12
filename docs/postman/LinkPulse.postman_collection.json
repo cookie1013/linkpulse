@@ -1,15 +1,15 @@
-{
+﻿{
   "info": {
     "_postman_id": "0d3028c9-b25c-44a2-9973-9c68453aeac5",
     "name": "LinkPulse",
-    "description": "### Welcome to Postman! This is your first collection. \n\nCollections are your starting point for building and testing APIs. You can use this one to:\n\n• Group related requests\n• Test your API in real-world scenarios\n• Document and share your requests\n\nUpdate the name and overview whenever you’re ready to make it yours.\n\n[Learn more about Postman Collections.](https://learning.postman.com/docs/collections/collections-overview/)",
+    "description": "### Welcome to Postman! This is your first collection. \n\nCollections are your starting point for building and testing APIs. You can use this one to:\n\n鈥?Group related requests\n鈥?Test your API in real-world scenarios\n鈥?Document and share your requests\n\nUpdate the name and overview whenever you鈥檙e ready to make it yours.\n\n[Learn more about Postman Collections.](https://learning.postman.com/docs/collections/collections-overview/)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "54196385",
     "_collection_link": "https://go.postman.co/collection/54196385-0d3028c9-b25c-44a2-9973-9c68453aeac5?source=collection_link"
   },
   "item": [
     {
-      "name": "分页查列表",
+      "name": "鍒嗛〉鏌ュ垪琛?,
       "event": [
         {
           "listen": "test",
@@ -31,7 +31,7 @@
           "bearer": [
             {
               "key": "token",
-              "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc3Njc4OTg3NiwiZXhwIjoxNzc2ODc2Mjc2fQ.tLTaflBZS-ec5SR1VrcKmsoU9YF-niNGjhjzCC4TR-1me5ysODTk2k4EKDGJS_Eu",
+              "value": "{{token}}",
               "type": "string"
             }
           ]
@@ -125,14 +125,14 @@
       "response": []
     },
     {
-      "name": "创建短链",
+      "name": "鍒涘缓鐭摼",
       "request": {
         "auth": {
           "type": "bearer",
           "bearer": [
             {
               "key": "token",
-              "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc3Njc4OTg3NiwiZXhwIjoxNzc2ODc2Mjc2fQ.tLTaflBZS-ec5SR1VrcKmsoU9YF-niNGjhjzCC4TR-1me5ysODTk2k4EKDGJS_Eu",
+              "value": "{{token}}",
               "type": "string"
             }
           ]
@@ -165,14 +165,14 @@
       "response": []
     },
     {
-      "name": "条件筛选列表",
+      "name": "鏉′欢绛涢€夊垪琛?,
       "request": {
         "auth": {
           "type": "bearer",
           "bearer": [
             {
               "key": "token",
-              "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc3Njc4OTg3NiwiZXhwIjoxNzc2ODc2Mjc2fQ.tLTaflBZS-ec5SR1VrcKmsoU9YF-niNGjhjzCC4TR-1me5ysODTk2k4EKDGJS_Eu",
+              "value": "{{token}}",
               "type": "string"
             }
           ]
@@ -214,7 +214,7 @@
       "response": []
     },
     {
-      "name": "无Token创建短链",
+      "name": "鏃燭oken鍒涘缓鐭摼",
       "request": {
         "auth": {
           "type": "noauth"
@@ -247,7 +247,7 @@
       "response": []
     },
     {
-      "name": "User-Agent 统计",
+      "name": "User-Agent 缁熻",
       "protocolProfileBehavior": {
         "disableBodyPruning": true
       },
@@ -257,7 +257,7 @@
           "bearer": [
             {
               "key": "token",
-              "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc3ODA2NjkzNSwiZXhwIjoxNzc4MTUzMzM1fQ.UIbuGVVZSEQsaeHIaTw8-dmScINdGMkEz2oEuLpa24AnfcGv1N5843cwK-Uswd-Y",
+              "value": "{{token}}",
               "type": "string"
             }
           ]
@@ -293,7 +293,7 @@
       "response": []
     },
     {
-      "name": "t统计概览",
+      "name": "t缁熻姒傝",
       "request": {
         "auth": {
           "type": "bearer",
@@ -327,7 +327,7 @@
       "response": []
     },
     {
-      "name": "PV 趋势",
+      "name": "PV 瓒嬪娍",
       "request": {
         "auth": {
           "type": "bearer",
@@ -367,7 +367,7 @@
       "response": []
     },
     {
-      "name": "访问日志分页",
+      "name": "璁块棶鏃ュ織鍒嗛〉",
       "request": {
         "auth": {
           "type": "bearer",
@@ -411,7 +411,7 @@
       "response": []
     },
     {
-      "name": "Referer 来源统计",
+      "name": "Referer 鏉ユ簮缁熻",
       "request": {
         "auth": {
           "type": "bearer",
@@ -445,7 +445,7 @@
       "response": []
     },
     {
-      "name": "热门短链 TopN",
+      "name": "鐑棬鐭摼 TopN",
       "request": {
         "auth": {
           "type": "bearer",
@@ -483,7 +483,7 @@
       "response": []
     },
     {
-      "name": "统计详情",
+      "name": "缁熻璇︽儏",
       "request": {
         "auth": {
           "type": "bearer",

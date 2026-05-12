@@ -16,7 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-
+import com.cookie.linkpulse.common.constant.SentinelResourceConstants;
 @Validated
 @RestController
 @RequestMapping("/api/admin/links")
@@ -33,7 +33,7 @@ public class AdminShortLinkController {
         Entry entry = null;
 
         try {
-            entry = SphU.entry("admin-create-short-link");
+            entry = SphU.entry(SentinelResourceConstants.ADMIN_CREATE_SHORT_LINK);
 
             return ApiResponse.success(shortLinkService.createShortLink(request));
 

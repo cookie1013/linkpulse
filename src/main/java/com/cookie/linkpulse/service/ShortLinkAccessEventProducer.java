@@ -3,7 +3,7 @@ package com.cookie.linkpulse.service;
 import com.cookie.linkpulse.dto.ShortLinkAccessEvent;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.stereotype.Service;
-
+import com.cookie.linkpulse.common.constant.MqConstants;
 @Service
 public class ShortLinkAccessEventProducer {
 
@@ -14,6 +14,6 @@ public class ShortLinkAccessEventProducer {
     }
 
     public void sendAccessEvent(ShortLinkAccessEvent event) {
-        rocketMQTemplate.convertAndSend("link-access-topic", event);
+        rocketMQTemplate.convertAndSend(MqConstants.LINK_ACCESS_TOPIC, event);
     }
 }
